@@ -40,7 +40,7 @@ namespace iseseisevtoo_kolm_rakendused
                 Text = "Kolm rakendust",
                 Font = new Font("Arial", 24, FontStyle.Bold),
                 ForeColor = Color.Black,
-                BackColor = Color.Transparent,
+                BackColor = Color.LightBlue,
                 AutoSize = true,
                 Location = new Point(125, 40)
             };

@@ -16,6 +16,7 @@ namespace iseseisevtoo_kolm_rakendused
         private Button saveButton;
         private Button libraryButton;
         private Button closeButton;
+        private Button drawButton;
         private Label fileLabel;
 
         private List<string> imageFiles;
@@ -100,6 +101,13 @@ namespace iseseisevtoo_kolm_rakendused
                 Size = new Size(150, 40)
             };
 
+            drawButton = new Button
+            {
+                Text = "Joonista",
+                Location = new Point(390, 640),
+                Size = new Size(150, 40)
+            };
+
             fileLabel = new Label
             {
                 Text = "Pilt pole valitud",
@@ -115,6 +123,7 @@ namespace iseseisevtoo_kolm_rakendused
             saveButton.Click += SaveImage;
             libraryButton.Click += OpenLibrary;
             closeButton.Click += CloseForm;
+            drawButton.Click += OpenDrawing;
 
             Controls.Add(pilt);
             Controls.Add(openButton);
@@ -124,6 +133,7 @@ namespace iseseisevtoo_kolm_rakendused
             Controls.Add(saveButton);
             Controls.Add(libraryButton);
             Controls.Add(closeButton);
+            Controls.Add(drawButton);
             Controls.Add(fileLabel);
         }
 
@@ -306,6 +316,37 @@ namespace iseseisevtoo_kolm_rakendused
                 libraryForm.SelectedImagePath != null)
             {
                 LoadImage(libraryForm.SelectedImagePath);
+            }
+        }
+
+        private void OpenDrawing(object sender, EventArgs e)
+        {
+            if (pilt.Image == null)
+            {
+                DrawingForm joonistusVorm = new DrawingForm(null);
+                joonistusVorm.ShowDialog();
+                return;
+            }
+
+            DialogResult vastus = MessageBox.Show(
+                "Kas soovid joonistada praeguse pildi peale?\n\n" +
+                "Vali 'Ei', et joonistada tühjale valgele lehele.",
+                "Joonistamine",
+                MessageBoxButtons.YesNoCancel,
+                MessageBoxIcon.Question);
+
+            if (vastus == DialogResult.Cancel)
+                return;
+
+            if (vastus == DialogResult.Yes)
+            {
+                DrawingForm joonistusVorm = new DrawingForm(pilt.Image);
+                joonistusVorm.ShowDialog();
+            }
+            else
+            {
+                DrawingForm joonistusVorm = new DrawingForm(null);
+                joonistusVorm.ShowDialog();
             }
         }
 
