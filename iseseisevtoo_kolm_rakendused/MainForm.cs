@@ -40,14 +40,14 @@ namespace iseseisevtoo_kolm_rakendused
                 Text = "Kolm rakendust",
                 Font = new Font("Arial", 24, FontStyle.Bold),
                 ForeColor = Color.Black,
-                BackColor = Color.LightBlue,
+                BackColor = Color.Transparent,
                 AutoSize = true,
                 Location = new Point(125, 40)
             };
 
             pictureViewerButton = new Button
             {
-                Text = "Picture Viewer",
+                Text = "Pildi vaatamine",
                 Size = new Size(250, 55),
                 Location = new Point(120, 110),
                 Font = new Font("Arial", 12)
@@ -55,7 +55,7 @@ namespace iseseisevtoo_kolm_rakendused
 
             mathQuizButton = new Button
             {
-                Text = "Math Quiz",
+                Text = "Äraarvamismäng",
                 Size = new Size(250, 55),
                 Location = new Point(120, 180),
                 Font = new Font("Arial", 12)
@@ -63,7 +63,7 @@ namespace iseseisevtoo_kolm_rakendused
 
             matchingGameButton = new Button
             {
-                Text = "Matching Game",
+                Text = "Leidmise mäng",
                 Size = new Size(250, 55),
                 Location = new Point(120, 250),
                 Font = new Font("Arial", 12)

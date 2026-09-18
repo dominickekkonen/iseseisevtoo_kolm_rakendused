@@ -6,247 +6,253 @@ namespace iseseisevtoo_kolm_rakendused
 {
     public class MathQuizForm : Form
     {
-        private Label questionLabel;
-        private Label scoreLabel;
-        private Label questionNumberLabel;
+        private const int RiviArv = 4;
+        private const int AegSekundites = 30;
 
-        private NumericUpDown answerBox;
-        private Button checkButton;
-        private Button restartButton;
+        private char[] tehted = { '+', '-', '*', '/' };
 
-        private ComboBox difficultyBox;
+        private int[] esimesedNumbrid = new int[RiviArv];
+        private int[] teisedNumbrid = new int[RiviArv];
+        private int[] oigedVastused = new int[RiviArv];
 
-        private Random random;
+        private Label[] esimeseNumbriLabelid = new Label[RiviArv];
+        private Label[] teiseNumbriLabelid = new Label[RiviArv];
+        private NumericUpDown[] vastuseKastid = new NumericUpDown[RiviArv];
 
-        private int firstNumber;
-        private int secondNumber;
-        private int correctAnswer;
+        private Label ajaLabel;
+        private Button alustaNupp;
 
-        private int score;
-        private int questionNumber;
-
-        private const int TotalQuestions = 10;
+        private Random juhuslik;
+        private Timer ajastaja;
+        private int aegaJarel;
 
         public MathQuizForm()
         {
-            random = new Random();
+            juhuslik = new Random();
 
-            InitializeForm();
-            CreateControls();
-            StartGame();
+            SeadistaVorm();
+            LooKomponendid();
+            LooAjastaja();
         }
 
-        private void InitializeForm()
+        private void SeadistaVorm()
         {
-            Text = "Mathematical Quiz";
-            Size = new Size(600, 450);
+            Text = "Matemaatika viktoriin";
+            Size = new Size(500, 400);
             StartPosition = FormStartPosition.CenterScreen;
             BackColor = Color.WhiteSmoke;
         }
 
-        private void CreateControls()
+        private void LooKomponendid()
         {
-            Label titleLabel = new Label
+            Label pealkiri = new Label
             {
-                Text = "Mathematical Quiz",
-                Font = new Font("Arial", 24, FontStyle.Bold),
+                Text = "Matemaatika viktoriin",
+                Font = new Font("Arial", 20, FontStyle.Bold),
                 AutoSize = true,
-                Location = new Point(165, 30)
+                Location = new Point(100, 20)
             };
 
-            difficultyBox = new ComboBox
+            Label ajaTekstLabel = new Label
             {
-                Location = new Point(210, 90),
-                Size = new Size(170, 30),
-                DropDownStyle = ComboBoxStyle.DropDownList
-            };
-
-            difficultyBox.Items.Add("Easy");
-            difficultyBox.Items.Add("Medium");
-            difficultyBox.Items.Add("Hard");
-
-            difficultyBox.SelectedIndex = 0;
-
-            difficultyBox.SelectedIndexChanged +=
-                DifficultyChanged;
-
-            questionLabel = new Label
-            {
-                Text = "Question",
-                Font = new Font("Arial", 26, FontStyle.Bold),
+                Text = "Aega jäänud:",
+                Font = new Font("Arial", 12),
                 AutoSize = true,
-                Location = new Point(220, 150)
+                Location = new Point(150, 70)
             };
 
-            answerBox = new NumericUpDown
+            ajaLabel = new Label
             {
-                Location = new Point(220, 220),
-                Size = new Size(160, 40),
-                Font = new Font("Arial", 18),
-                Minimum = -100000,
-                Maximum = 100000
-            };
-
-            checkButton = new Button
-            {
-                Text = "Check Answer",
-                Location = new Point(190, 280),
-                Size = new Size(220, 45),
-                Font = new Font("Arial", 12)
-            };
-
-            restartButton = new Button
-            {
-                Text = "Restart",
-                Location = new Point(190, 335),
-                Size = new Size(220, 40)
-            };
-
-            scoreLabel = new Label
-            {
-                Text = "Score: 0",
-                Location = new Point(30, 30),
+                Text = AegSekundites + " sekundit",
+                Font = new Font("Arial", 12, FontStyle.Bold),
                 AutoSize = true,
-                Font = new Font("Arial", 12)
+                Location = new Point(270, 70)
             };
 
-            questionNumberLabel = new Label
+            Controls.Add(pealkiri);
+            Controls.Add(ajaTekstLabel);
+            Controls.Add(ajaLabel);
+
+            int algusY = 120;
+
+            for (int i = 0; i < RiviArv; i++)
             {
-                Text = "Question: 1/10",
-                Location = new Point(30, 60),
-                AutoSize = true,
-                Font = new Font("Arial", 12)
-            };
+                int y = algusY + i * 45;
 
-            checkButton.Click += CheckAnswer;
-            restartButton.Click += RestartGame;
+                Label esimeneLabel = new Label
+                {
+                    Text = "0",
+                    Font = new Font("Arial", 16),
+                    AutoSize = true,
+                    Location = new Point(80, y)
+                };
 
-            Controls.Add(titleLabel);
-            Controls.Add(difficultyBox);
-            Controls.Add(questionLabel);
-            Controls.Add(answerBox);
-            Controls.Add(checkButton);
-            Controls.Add(restartButton);
-            Controls.Add(scoreLabel);
-            Controls.Add(questionNumberLabel);
-        }
+                Label tehteLabel = new Label
+                {
+                    Text = tehted[i].ToString(),
+                    Font = new Font("Arial", 16, FontStyle.Bold),
+                    AutoSize = true,
+                    Location = new Point(130, y)
+                };
 
-        private void StartGame()
-        {
-            score = 0;
-            questionNumber = 0;
+                Label teineLabel = new Label
+                {
+                    Text = "0",
+                    Font = new Font("Arial", 16),
+                    AutoSize = true,
+                    Location = new Point(170, y)
+                };
 
-            checkButton.Enabled = true;
-            answerBox.Enabled = true;
+                Label vordubLabel = new Label
+                {
+                    Text = "=",
+                    Font = new Font("Arial", 16, FontStyle.Bold),
+                    AutoSize = true,
+                    Location = new Point(220, y)
+                };
 
-            UpdateScore();
-            NextQuestion();
-        }
+                NumericUpDown vastuseKast = new NumericUpDown
+                {
+                    Location = new Point(260, y),
+                    Size = new Size(100, 30),
+                    Font = new Font("Arial", 14),
+                    Minimum = -1000,
+                    Maximum = 1000,
+                    Enabled = false
+                };
 
-        private void NextQuestion()
-        {
-            if (questionNumber >= TotalQuestions)
-            {
-                FinishGame();
-                return;
+                esimeseNumbriLabelid[i] = esimeneLabel;
+                teiseNumbriLabelid[i] = teineLabel;
+                vastuseKastid[i] = vastuseKast;
+
+                Controls.Add(esimeneLabel);
+                Controls.Add(tehteLabel);
+                Controls.Add(teineLabel);
+                Controls.Add(vordubLabel);
+                Controls.Add(vastuseKast);
             }
 
-            questionNumber++;
+            alustaNupp = new Button
+            {
+                Text = "Alusta viktoriini",
+                Font = new Font("Arial", 12),
+                Location = new Point(150, algusY + RiviArv * 45 + 20),
+                Size = new Size(180, 40)
+            };
 
-            int maxNumber = GetMaximumNumber();
+            alustaNupp.Click += AlustaNupp_Click;
 
-            firstNumber = random.Next(1, maxNumber + 1);
-            secondNumber = random.Next(1, maxNumber + 1);
-
-            correctAnswer = firstNumber + secondNumber;
-
-            questionLabel.Text =
-                firstNumber + " + " + secondNumber + " = ?";
-
-            answerBox.Value = 0;
-
-            questionNumberLabel.Text =
-                "Question: " +
-                questionNumber +
-                "/" +
-                TotalQuestions;
+            Controls.Add(alustaNupp);
         }
 
-        private int GetMaximumNumber()
+        private void LooAjastaja()
         {
-            switch (difficultyBox.SelectedIndex)
+            ajastaja = new Timer();
+            ajastaja.Interval = 1000;
+            ajastaja.Tick += Ajastaja_Tick;
+        }
+
+        private void AlustaNupp_Click(object sender, EventArgs e)
+        {
+            LooKusimused();
+
+            aegaJarel = AegSekundites;
+            ajaLabel.Text = aegaJarel + " sekundit";
+
+            LubaVastuseKastid(true);
+            alustaNupp.Enabled = false;
+
+            ajastaja.Start();
+        }
+
+        private void Ajastaja_Tick(object sender, EventArgs e)
+        {
+            aegaJarel--;
+            ajaLabel.Text = aegaJarel + " sekundit";
+
+            if (aegaJarel <= 0)
             {
-                case 0:
-                    return 10;
-
-                case 1:
-                    return 50;
-
-                case 2:
-                    return 100;
-
-                default:
-                    return 10;
+                ajastaja.Stop();
+                LopetaViktoriin();
             }
         }
 
-        private void CheckAnswer(object sender, EventArgs e)
+        private void LooKusimused()
         {
-            int userAnswer = (int)answerBox.Value;
-
-            if (userAnswer == correctAnswer)
+            for (int i = 0; i < RiviArv; i++)
             {
-                score++;
+                int esimene = 0;
+                int teine = 0;
+                int vastus = 0;
 
-                MessageBox.Show(
-                    "Correct!",
-                    "Result",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Information);
-            }
-            else
-            {
-                MessageBox.Show(
-                    "Wrong! Correct answer: " +
-                    correctAnswer,
-                    "Result",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error);
-            }
+                if (tehted[i] == '+')
+                {
+                    esimene = juhuslik.Next(1, 51);
+                    teine = juhuslik.Next(1, 51);
+                    vastus = esimene + teine;
+                }
+                else if (tehted[i] == '-')
+                {
+                    esimene = juhuslik.Next(20, 100);
+                    teine = juhuslik.Next(1, esimene);
+                    vastus = esimene - teine;
+                }
+                else if (tehted[i] == '*')
+                {
+                    esimene = juhuslik.Next(1, 13);
+                    teine = juhuslik.Next(1, 13);
+                    vastus = esimene * teine;
+                }
+                else
+                {
+                    teine = juhuslik.Next(1, 13);
+                    vastus = juhuslik.Next(1, 13);
+                    esimene = teine * vastus;
+                }
 
-            UpdateScore();
-            NextQuestion();
+                esimesedNumbrid[i] = esimene;
+                teisedNumbrid[i] = teine;
+                oigedVastused[i] = vastus;
+
+                esimeseNumbriLabelid[i].Text = esimene.ToString();
+                teiseNumbriLabelid[i].Text = teine.ToString();
+                vastuseKastid[i].Value = 0;
+            }
         }
 
-        private void UpdateScore()
+        private void LubaVastuseKastid(bool luba)
         {
-            scoreLabel.Text = "Score: " + score;
+            for (int i = 0; i < RiviArv; i++)
+            {
+                vastuseKastid[i].Enabled = luba;
+            }
         }
 
-        private void FinishGame()
+        private void LopetaViktoriin()
         {
-            checkButton.Enabled = false;
-            answerBox.Enabled = false;
+            LubaVastuseKastid(false);
+
+            int oigeidVastuseid = 0;
+
+            for (int i = 0; i < RiviArv; i++)
+            {
+                int antudVastus = (int)vastuseKastid[i].Value;
+
+                if (antudVastus == oigedVastused[i])
+                {
+                    oigeidVastuseid++;
+                }
+            }
+
+            alustaNupp.Enabled = true;
+            alustaNupp.Text = "Proovi uuesti";
 
             MessageBox.Show(
-                "Quiz finished!\n\n" +
-                "Your score: " +
-                score +
-                "/" +
-                TotalQuestions,
-                "Game Over",
+                "Aeg sai otsa!\n\n" +
+                "Õigeid vastuseid: " + oigeidVastuseid + "/" + RiviArv,
+                "Tulemus",
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Information);
-        }
-
-        private void RestartGame(object sender, EventArgs e)
-        {
-            StartGame();
-        }
-
-        private void DifficultyChanged(object sender, EventArgs e)
-        {
-            StartGame();
         }
     }
 }

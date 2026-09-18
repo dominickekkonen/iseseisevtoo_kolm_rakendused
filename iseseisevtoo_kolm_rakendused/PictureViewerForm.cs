@@ -14,14 +14,19 @@ namespace iseseisevtoo_kolm_rakendused
         private Button nextButton;
         private Button colorButton;
         private Button saveButton;
+        private Button libraryButton;
+        private Button closeButton;
         private Label fileLabel;
 
         private List<string> imageFiles;
         private int currentImageIndex = -1;
 
+        private List<string> savedImages;
+
         public PictureViewerForm()
         {
             imageFiles = new List<string>();
+            savedImages = new List<string>();
 
             InitializeForm();
             CreateControls();
@@ -29,8 +34,8 @@ namespace iseseisevtoo_kolm_rakendused
 
         private void InitializeForm()
         {
-            Text = "Picture Viewer";
-            Size = new Size(900, 700);
+            Text = "Pildi vaatamine";
+            Size = new Size(900, 760);
             StartPosition = FormStartPosition.CenterScreen;
             BackColor = Color.LightGray;
         }
@@ -55,14 +60,14 @@ namespace iseseisevtoo_kolm_rakendused
 
             previousButton = new Button
             {
-                Text = "<",
+                Text = "⇐",
                 Location = new Point(200, 580),
                 Size = new Size(120, 40)
             };
 
             nextButton = new Button
             {
-                Text = ">",
+                Text = "⇒",
                 Location = new Point(340, 580),
                 Size = new Size(120, 40)
             };
@@ -81,6 +86,20 @@ namespace iseseisevtoo_kolm_rakendused
                 Size = new Size(120, 40)
             };
 
+            libraryButton = new Button
+            {
+                Text = "Pildikogu",
+                Location = new Point(50, 640),
+                Size = new Size(150, 40)
+            };
+
+            closeButton = new Button
+            {
+                Text = "Sulge",
+                Location = new Point(220, 640),
+                Size = new Size(150, 40)
+            };
+
             fileLabel = new Label
             {
                 Text = "Pilt pole valitud",
@@ -94,6 +113,8 @@ namespace iseseisevtoo_kolm_rakendused
             nextButton.Click += ShowNextImage;
             colorButton.Click += ChangeBackgroundColor;
             saveButton.Click += SaveImage;
+            libraryButton.Click += OpenLibrary;
+            closeButton.Click += CloseForm;
 
             Controls.Add(pilt);
             Controls.Add(openButton);
@@ -101,6 +122,8 @@ namespace iseseisevtoo_kolm_rakendused
             Controls.Add(nextButton);
             Controls.Add(colorButton);
             Controls.Add(saveButton);
+            Controls.Add(libraryButton);
+            Controls.Add(closeButton);
             Controls.Add(fileLabel);
         }
 
@@ -158,6 +181,11 @@ namespace iseseisevtoo_kolm_rakendused
                 return;
             }
 
+            LoadImage(imageFiles[currentImageIndex]);
+        }
+
+        private void LoadImage(string path)
+        {
             if (pilt.Image != null)
             {
                 pilt.Image.Dispose();
@@ -165,14 +193,13 @@ namespace iseseisevtoo_kolm_rakendused
             }
 
             FileStream stream = new FileStream(
-                    imageFiles[currentImageIndex],
+                    path,
                     FileMode.Open,
                     FileAccess.Read);
 
             pilt.Image = Image.FromStream(stream);
 
-            fileLabel.Text =
-                Path.GetFileName(imageFiles[currentImageIndex]);
+            fileLabel.Text = Path.GetFileName(path);
         }
 
         private void ShowPreviousImage(object sender, EventArgs e)
@@ -253,9 +280,38 @@ namespace iseseisevtoo_kolm_rakendused
                         System.Drawing.Imaging.ImageFormat.Png);
                 }
 
+                savedImages.Add(dialog.FileName);
+
                 MessageBox.Show(
                     "Pilt on salvestatd!");
             }
+        }
+
+        private void OpenLibrary(object sender, EventArgs e)
+        {
+            if (savedImages.Count == 0)
+            {
+                MessageBox.Show(
+                    "Salvestatud pilte pole veel",
+                    "Pildikogu",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+
+                return;
+            }
+
+            PictureLibraryForm libraryForm = new PictureLibraryForm(savedImages);
+
+            if (libraryForm.ShowDialog() == DialogResult.OK &&
+                libraryForm.SelectedImagePath != null)
+            {
+                LoadImage(libraryForm.SelectedImagePath);
+            }
+        }
+
+        private void CloseForm(object sender, EventArgs e)
+        {
+            Close();
         }
 
         protected override void OnFormClosed(FormClosedEventArgs e)

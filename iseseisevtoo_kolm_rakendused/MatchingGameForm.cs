@@ -7,229 +7,313 @@ namespace iseseisevtoo_kolm_rakendused
 {
     public class MatchingGameForm : Form
     {
-        private const int Rows = 4;
-        private const int Columns = 4;
+        private int raskusaste = 0;
 
-        private Button[,] cards;
-        private List<string> symbols;
+        private int ridadeArv;
+        private int veergudeArv;
+        private int paarideArv;
 
-        private Button firstCard;
-        private Button secondCard;
+        private Button[,] kaardid;
+        private List<string> sumbolid;
 
-        private int pairsFound;
-        private int moves;
+        private static readonly string[] SumbolitePagas =
+        {
+            "🌟", "♠️", "❄️", "🧩", "♟️", "🎲", "🎱", "⚙️",
+            "🍀", "🔥", "🌙", "⚡", "🎯", "🎈", "🍕", "🚀",
+            "🐱", "🐶"
+        };
 
-        private Label movesLabel;
-        private Label pairsLabel;
+        private Button esimeneKaart;
+        private Button teineKaart;
 
-        private bool checkingCards;
+        private int leitudPaarid;
+        private int kaigudArv;
+
+        private Label kaikudeLabel;
+        private Label paaridLabel;
+        private ComboBox raskusasteBox;
+
+        private bool kontrollimineKaib;
+
+        private const int Vahe = 8;
+        private const int LauaAlgusX = 30;
+        private const int LauaAlgusY = 70;
 
         public MatchingGameForm()
         {
-            InitializeForm();
-            StartNewGame();
+            SeadistaVorm();
+            SeadistaRaskusaste(raskusaste);
+            AlustaUutMangu();
         }
 
-        private void InitializeForm()
+        private void SeadistaVorm()
         {
-            Text = "Matching Game";
-            Size = new Size(650, 650);
+            Text = "Mälumäng";
             StartPosition = FormStartPosition.CenterScreen;
             BackColor = Color.WhiteSmoke;
         }
 
-        private void StartNewGame()
+        private void SeadistaRaskusaste(int tase)
         {
-            pairsFound = 0;
-            moves = 0;
-            firstCard = null;
-            secondCard = null;
-            checkingCards = false;
+            raskusaste = tase;
+
+            if (tase == 0)
+
+            {
+                ridadeArv = 4;
+                veergudeArv = 4;
+            }
+            else if (tase == 1)
+
+            {
+                ridadeArv = 4;
+                veergudeArv = 6;
+            }
+            else
+
+            {
+                ridadeArv = 6;
+                veergudeArv = 6;
+            }
+
+            paarideArv = (ridadeArv * veergudeArv) / 2;
+
+            MuudaVormiSuurust();
+        }
+
+        private int KaardiSuurus()
+        {
+            if (raskusaste == 0)
+                return 120;
+            else if (raskusaste == 1)
+                return 95;
+            else
+                return 85;
+        }
+
+        private void MuudaVormiSuurust()
+        {
+            int kaardiSuurus = KaardiSuurus();
+
+            int lauaLaius = veergudeArv * kaardiSuurus + (veergudeArv - 1) * Vahe;
+            int lauaKorgus = ridadeArv * kaardiSuurus + (ridadeArv - 1) * Vahe;
+
+            int vormiLaius = lauaLaius + LauaAlgusX * 2;
+            int vormiKorgus = lauaKorgus + LauaAlgusY + 40;
+
+            Size = new Size(Math.Max(vormiLaius, 500), Math.Max(vormiKorgus, 400));
+        }
+
+        private void AlustaUutMangu()
+        {
+            leitudPaarid = 0;
+            kaigudArv = 0;
+            esimeneKaart = null;
+            teineKaart = null;
+            kontrollimineKaib = false;
 
             Controls.Clear();
 
-            CreateTopControls();
-            CreateSymbols();
-            CreateCards();
+            LooUlemisedNupud();
+            LooSumbolid();
+            LooKaardid();
 
-            UpdateLabels();
+            UuendaSilte();
         }
 
-        private void CreateTopControls()
+        private void LooUlemisedNupud()
         {
-            movesLabel = new Label
+            kaikudeLabel = new Label
             {
-                Text = "Moves: 0",
+                Text = "Käigud: 0",
                 Location = new Point(30, 20),
                 AutoSize = true,
                 Font = new Font("Arial", 12, FontStyle.Bold)
             };
 
-            pairsLabel = new Label
+            paaridLabel = new Label
             {
-                Text = "Pairs: 0/8",
-                Location = new Point(150, 20),
+                Text = "Paarid: 0/" + paarideArv,
+                Location = new Point(140, 20),
                 AutoSize = true,
                 Font = new Font("Arial", 12, FontStyle.Bold)
             };
 
-            Button restartButton = new Button
+            Label raskusasteSilt = new Label
             {
-                Text = "Restart",
-                Location = new Point(480, 10),
-                Size = new Size(100, 35)
+                Text = "Raskusaste:",
+                Location = new Point(240, 22),
+                AutoSize = true,
+                Font = new Font("Arial", 10, FontStyle.Regular)
             };
 
-            restartButton.Click += RestartButton_Click;
-
-            Controls.Add(movesLabel);
-            Controls.Add(pairsLabel);
-            Controls.Add(restartButton);
-        }
-
-        private void CreateSymbols()
-        {
-            symbols = new List<string>
+            raskusasteBox = new ComboBox
             {
-                "★", "★",
-                "♥", "♥",
-                "●", "●",
-                "■", "■",
-                "▲", "▲",
-                "♦", "♦",
-                "♣", "♣",
-                "☀", "☀"
+                Location = new Point(325, 20),
+                Size = new Size(110, 25),
+                DropDownStyle = ComboBoxStyle.DropDownList
             };
 
-            ShuffleSymbols();
+            raskusasteBox.Items.Add("Kerge");
+            raskusasteBox.Items.Add("Keskmine");
+            raskusasteBox.Items.Add("Raske");
+            raskusasteBox.SelectedIndex = raskusaste;
+
+            raskusasteBox.SelectedIndexChanged += RaskusasteBox_SelectedIndexChanged;
+
+            Button taaskaivitaNupp = new Button
+            {
+                Text = "Algusest",
+                Location = new Point(ClientSize.Width - 90, 15),
+                Size = new Size(85, 30),
+                Anchor = AnchorStyles.Top | AnchorStyles.Right
+            };
+
+            taaskaivitaNupp.Click += TaaskaivitaNupp_Click;
+
+            Controls.Add(kaikudeLabel);
+            Controls.Add(paaridLabel);
+            Controls.Add(raskusasteSilt);
+            Controls.Add(raskusasteBox);
+            Controls.Add(taaskaivitaNupp);
         }
 
-        private void ShuffleSymbols()
+        private void RaskusasteBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            Random random = new Random();
+            int valitudTase = raskusasteBox.SelectedIndex;
 
-            for (int i = symbols.Count - 1; i > 0; i--)
+            if (valitudTase == raskusaste)
+                return;
+
+            SeadistaRaskusaste(valitudTase);
+            AlustaUutMangu();
+        }
+
+        private void LooSumbolid()
+        {
+            sumbolid = new List<string>();
+
+            for (int i = 0; i < paarideArv; i++)
             {
-                int j = random.Next(i + 1);
+                sumbolid.Add(SumbolitePagas[i]);
+                sumbolid.Add(SumbolitePagas[i]);
+            }
 
-                string temp = symbols[i];
-                symbols[i] = symbols[j];
-                symbols[j] = temp;
+            SegaSumbolid();
+        }
+
+        private void SegaSumbolid()
+        {
+            Random juhuslik = new Random();
+
+            for (int i = sumbolid.Count - 1; i > 0; i--)
+            {
+                int j = juhuslik.Next(i + 1);
+
+                string ajutine = sumbolid[i];
+                sumbolid[i] = sumbolid[j];
+                sumbolid[j] = ajutine;
             }
         }
 
-        private void CreateCards()
+        private void LooKaardid()
         {
-            cards = new Button[Rows, Columns];
+            kaardid = new Button[ridadeArv, veergudeArv];
 
-            int startX = 50;
-            int startY = 70;
-            int cardSize = 120;
-            int gap = 10;
+            int kaardiSuurus = KaardiSuurus();
+            int fondiSuurus = raskusaste == 0 ? 32 : (raskusaste == 1 ? 24 : 18);
 
-            int symbolIndex = 0;
+            int sumboliIndeks = 0;
 
-            for (int row = 0; row < Rows; row++)
+            for (int rida = 0; rida < ridadeArv; rida++)
             {
-                for (int column = 0; column < Columns; column++)
+                for (int veerg = 0; veerg < veergudeArv; veerg++)
                 {
-                    Button card = new Button();
+                    Button kaart = new Button();
 
-                    card.Size = new Size(cardSize, cardSize);
+                    kaart.Size = new Size(kaardiSuurus, kaardiSuurus);
 
-                    card.Location = new Point(
-                        startX + column * (cardSize + gap),
-                        startY + row * (cardSize + gap)
+                    kaart.Location = new Point(
+                        LauaAlgusX + veerg * (kaardiSuurus + Vahe),
+                        LauaAlgusY + rida * (kaardiSuurus + Vahe)
                     );
 
-                    card.Text = "";
-                    card.Tag = symbols[symbolIndex];
+                    kaart.Text = "";
+                    kaart.Tag = sumbolid[sumboliIndeks];
 
-                    card.Font = new Font(
-                        "Arial",
-                        32,
-                        FontStyle.Bold
-                    );
+                    kaart.Font = new Font("Arial", fondiSuurus, FontStyle.Bold);
+                    kaart.BackColor = Color.SteelBlue;
 
-                    card.BackColor = Color.SteelBlue;
+                    kaart.Click += Kaart_Click;
 
-                    card.Click += Card_Click;
+                    kaardid[rida, veerg] = kaart;
 
-                    cards[row, column] = card;
+                    Controls.Add(kaart);
 
-                    Controls.Add(card);
-
-                    symbolIndex++;
+                    sumboliIndeks++;
                 }
             }
         }
 
-        private void Card_Click(object sender, EventArgs e)
+        private void Kaart_Click(object sender, EventArgs e)
         {
-            if (checkingCards)
+            if (kontrollimineKaib)
                 return;
 
-            Button clickedCard = sender as Button;
+            Button klikitudKaart = sender as Button;
 
-            if (clickedCard == null)
+            if (klikitudKaart == null)
                 return;
 
-            // Don't allow clicking an already matched card
-            if (clickedCard.BackColor == Color.LightGreen)
+            if (klikitudKaart.BackColor == Color.LightGreen)
                 return;
 
-            // Don't allow clicking the same card twice
-            if (clickedCard == firstCard)
+            if (klikitudKaart == esimeneKaart)
                 return;
 
-            clickedCard.Text = clickedCard.Tag.ToString();
-            clickedCard.BackColor = Color.White;
+            klikitudKaart.Text = klikitudKaart.Tag.ToString();
+            klikitudKaart.BackColor = Color.White;
 
-            // First card
-            if (firstCard == null)
+            if (esimeneKaart == null)
             {
-                firstCard = clickedCard;
+                esimeneKaart = klikitudKaart;
                 return;
             }
 
-            // Second card
-            secondCard = clickedCard;
+            teineKaart = klikitudKaart;
 
-            moves++;
-            UpdateLabels();
+            kaigudArv++;
+            UuendaSilte();
 
-            CheckCards();
+            KontrolliKaarte();
         }
 
-        private void CheckCards()
+        private void KontrolliKaarte()
         {
-            checkingCards = true;
+            kontrollimineKaib = true;
 
-            string firstSymbol = firstCard.Tag.ToString();
-            string secondSymbol = secondCard.Tag.ToString();
+            string esimeneSumbol = esimeneKaart.Tag.ToString();
+            string teineSumbol = teineKaart.Tag.ToString();
 
-            if (firstSymbol == secondSymbol)
+            if (esimeneSumbol == teineSumbol)
             {
-                // Match!
-                firstCard.BackColor = Color.LightGreen;
-                secondCard.BackColor = Color.LightGreen;
+                esimeneKaart.BackColor = Color.LightGreen;
+                teineKaart.BackColor = Color.LightGreen;
 
-                pairsFound++;
+                leitudPaarid++;
+                UuendaSilte();
 
-                UpdateLabels();
+                esimeneKaart = null;
+                teineKaart = null;
+                kontrollimineKaib = false;
 
-                firstCard = null;
-                secondCard = null;
-
-                checkingCards = false;
-
-                if (pairsFound == 8)
+                if (leitudPaarid == paarideArv)
                 {
                     MessageBox.Show(
-                        "Congratulations!\n\n" +
-                        "You found all 8 pairs!\n" +
-                        "Moves: " + moves,
-                        "Game Finished",
+                        "Palju õnne!\n\n" +
+                        "Leidsid kõik " + paarideArv + " paari!\n" +
+                        "Käike kokku: " + kaigudArv,
+                        "Mäng läbi",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Information
                     );
@@ -237,44 +321,41 @@ namespace iseseisevtoo_kolm_rakendused
             }
             else
             {
-                // Not a match - hide cards after 700 ms
-                Timer timer = new Timer();
+                Timer ajastaja = new Timer();
+                ajastaja.Interval = 700;
 
-                timer.Interval = 700;
-
-                timer.Tick += (s, e) =>
+                ajastaja.Tick += (s, e) =>
                 {
-                    firstCard.Text = "";
-                    secondCard.Text = "";
+                    esimeneKaart.Text = "";
+                    teineKaart.Text = "";
 
-                    firstCard.BackColor = Color.SteelBlue;
-                    secondCard.BackColor = Color.SteelBlue;
+                    esimeneKaart.BackColor = Color.SteelBlue;
+                    teineKaart.BackColor = Color.SteelBlue;
 
-                    firstCard = null;
-                    secondCard = null;
+                    esimeneKaart = null;
+                    teineKaart = null;
+                    kontrollimineKaib = false;
 
-                    checkingCards = false;
-
-                    timer.Stop();
-                    timer.Dispose();
+                    ajastaja.Stop();
+                    ajastaja.Dispose();
                 };
 
-                timer.Start();
+                ajastaja.Start();
             }
         }
 
-        private void UpdateLabels()
+        private void UuendaSilte()
         {
-            if (movesLabel != null)
-                movesLabel.Text = "Moves: " + moves;
+            if (kaikudeLabel != null)
+                kaikudeLabel.Text = "Käigud: " + kaigudArv;
 
-            if (pairsLabel != null)
-                pairsLabel.Text = "Pairs: " + pairsFound + "/8";
+            if (paaridLabel != null)
+                paaridLabel.Text = "Paarid: " + leitudPaarid + "/" + paarideArv;
         }
 
-        private void RestartButton_Click(object sender, EventArgs e)
+        private void TaaskaivitaNupp_Click(object sender, EventArgs e)
         {
-            StartNewGame();
+            AlustaUutMangu();
         }
     }
 }
