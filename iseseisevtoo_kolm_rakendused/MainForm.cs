@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Drawing;
 using System.Windows.Forms;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TrayNotify;
 
 namespace iseseisevtoo_kolm_rakendused
 {
@@ -9,7 +10,8 @@ namespace iseseisevtoo_kolm_rakendused
         private Button pictureViewerButton;
         private Button mathQuizButton;
         private Button matchingGameButton;
-        private Label titleLabel;
+        private Label silt;
+        private PictureBox pilt;
 
         public MainForm()
         {
@@ -19,18 +21,26 @@ namespace iseseisevtoo_kolm_rakendused
 
         private void InitializeForm()
         {
-            Text = "Three Applications";
-            Size = new Size(500, 400);
+            Text = "Kolm rakendust";
+            Size = new Size(550, 450);
             StartPosition = FormStartPosition.CenterScreen;
             BackColor = Color.WhiteSmoke;
         }
 
         private void CreateControls()
         {
-            titleLabel = new Label
+            PictureBox pilt = new PictureBox();
+
+            pilt.Dock = DockStyle.Fill;
+            pilt.Image = Image.FromFile(@"..\..\Pildid\images.jpg");
+            pilt.SizeMode = PictureBoxSizeMode.StretchImage;
+
+            silt = new Label
             {
-                Text = "Three Applications",
+                Text = "Kolm rakendust",
                 Font = new Font("Arial", 24, FontStyle.Bold),
+                ForeColor = Color.Black,
+                BackColor = Color.LightBlue,
                 AutoSize = true,
                 Location = new Point(125, 40)
             };
@@ -62,11 +72,13 @@ namespace iseseisevtoo_kolm_rakendused
             pictureViewerButton.Click += OpenPictureViewer;
             mathQuizButton.Click += OpenMathQuiz;
             matchingGameButton.Click += OpenMatchingGame;
-
-            Controls.Add(titleLabel);
+            Controls.Add(pilt);
+            Controls.Add(silt);
             Controls.Add(pictureViewerButton);
             Controls.Add(mathQuizButton);
             Controls.Add(matchingGameButton);
+            silt.BringToFront();
+            pilt.SendToBack();
         }
 
         private void OpenPictureViewer(object sender, EventArgs e)
