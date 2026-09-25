@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -7,7 +7,6 @@ namespace iseseisevtoo_kolm_rakendused
     public class MathQuizForm : Form
     {
         private const int RiviArv = 4;
-        private const int AegSekundites = 30;
 
         private char[] tehted = { '+', '-', '*', '/' };
 
@@ -18,6 +17,7 @@ namespace iseseisevtoo_kolm_rakendused
         private Label[] esimeseNumbriLabelid = new Label[RiviArv];
         private Label[] teiseNumbriLabelid = new Label[RiviArv];
         private NumericUpDown[] vastuseKastid = new NumericUpDown[RiviArv];
+        private bool[] vastatud = new bool[RiviArv];
 
         private Label ajaLabel;
         private Button alustaNupp;
@@ -25,7 +25,7 @@ namespace iseseisevtoo_kolm_rakendused
 
         private Random juhuslik;
         private Timer ajastaja;
-        private int aegaJarel;
+        private int aegaMoodunud;
 
         public MathQuizForm()
         {
@@ -56,18 +56,18 @@ namespace iseseisevtoo_kolm_rakendused
 
             Label ajaTekstLabel = new Label
             {
-                Text = "Aega jäänud:",
+                Text = "Möödunud aeg:",
                 Font = new Font("Arial", 12),
                 AutoSize = true,
-                Location = new Point(150, 70)
+                Location = new Point(140, 70)
             };
 
             ajaLabel = new Label
             {
-                Text = AegSekundites + " sekundit",
+                Text = "0 sekundit",
                 Font = new Font("Arial", 12, FontStyle.Bold),
                 AutoSize = true,
-                Location = new Point(270, 70)
+                Location = new Point(280, 70)
             };
 
             Controls.Add(pealkiri);
@@ -119,8 +119,11 @@ namespace iseseisevtoo_kolm_rakendused
                     Font = new Font("Arial", 14),
                     Minimum = -1000,
                     Maximum = 1000,
-                    Enabled = false
+                    Enabled = false,
+                    Tag = i
                 };
+
+                vastuseKast.KeyDown += VastuseKast_KeyDown;
 
                 esimeseNumbriLabelid[i] = esimeneLabel;
                 teiseNumbriLabelid[i] = teineLabel;
@@ -168,8 +171,13 @@ namespace iseseisevtoo_kolm_rakendused
         {
             LooKusimused();
 
-            aegaJarel = AegSekundites;
-            ajaLabel.Text = aegaJarel + " sekundit";
+            aegaMoodunud = 0;
+            ajaLabel.Text = "0 sekundit";
+
+            for (int i = 0; i < RiviArv; i++)
+            {
+                vastatud[i] = false;
+            }
 
             LubaVastuseKastid(true);
             LahtestaVarvid();
@@ -182,14 +190,8 @@ namespace iseseisevtoo_kolm_rakendused
 
         private void Ajastaja_Tick(object sender, EventArgs e)
         {
-            aegaJarel--;
-            ajaLabel.Text = aegaJarel + " sekundit";
-
-            if (aegaJarel <= 0)
-            {
-                ajastaja.Stop();
-                LopetaViktoriin();
-            }
+            aegaMoodunud++;
+            ajaLabel.Text = aegaMoodunud + " sekundit";
         }
 
         private void LopetaNupp_Click(object sender, EventArgs e)
@@ -249,6 +251,7 @@ namespace iseseisevtoo_kolm_rakendused
             }
         }
 
+<<<<<<< HEAD
         private void LahtestaVarvid()
         {
             for (int i = 0; i < RiviArv; i++)
@@ -257,6 +260,38 @@ namespace iseseisevtoo_kolm_rakendused
             }
         }
 
+=======
+        private void VastuseKast_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode != Keys.Enter)
+                return;
+
+            NumericUpDown kast = (NumericUpDown)sender;
+            int index = (int)kast.Tag;
+
+            vastatud[index] = true;
+
+            SelectNextControl(kast, true, true, true, true);
+
+            if (KoikVastatud())
+            {
+                ajastaja.Stop();
+                LopetaViktoriin();
+            }
+        }
+
+        private bool KoikVastatud()
+        {
+            for (int i = 0; i < RiviArv; i++)
+            {
+                if (!vastatud[i])
+                    return false;
+            }
+
+            return true;
+        }
+
+>>>>>>> 29891ae95b558ba3674ffebd036774ffb5dab8dd
         private void LopetaViktoriin()
         {
             LubaVastuseKastid(false);
@@ -283,8 +318,14 @@ namespace iseseisevtoo_kolm_rakendused
             }
 
             MessageBox.Show(
+<<<<<<< HEAD
                 "Viktoriin lõpetatud!\n\n" +
                 "Õigeid vastuseid: " + oigeidVastuseid + "/" + RiviArv,
+=======
+                "Kõik ülesanded lahendatud!\n\n" +
+                "Õigeid vastuseid: " + oigeidVastuseid + "/" + RiviArv + "\n" +
+                "Aeg kulus: " + aegaMoodunud + " sekundit",
+>>>>>>> 29891ae95b558ba3674ffebd036774ffb5dab8dd
                 "Tulemus",
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Information);
