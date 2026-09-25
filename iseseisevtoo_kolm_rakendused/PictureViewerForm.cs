@@ -22,12 +22,9 @@ namespace iseseisevtoo_kolm_rakendused
         private List<string> imageFiles;
         private int currentImageIndex = -1;
 
-        private List<string> savedImages;
-
         public PictureViewerForm()
         {
             imageFiles = new List<string>();
-            savedImages = new List<string>();
 
             InitializeForm();
             CreateControls();
@@ -38,7 +35,7 @@ namespace iseseisevtoo_kolm_rakendused
             Text = "Pildi vaatamine";
             Size = new Size(900, 760);
             StartPosition = FormStartPosition.CenterScreen;
-            BackColor = Color.LightGray;
+            BackColor = RakendusSeaded.TaustaVarv ?? Color.LightGray;
         }
 
         private void CreateControls()
@@ -261,48 +258,42 @@ namespace iseseisevtoo_kolm_rakendused
                 return;
             }
 
-            SaveFileDialog dialog = new SaveFileDialog();
+            string vaikimisiNimi = "pilt_" + DateTime.Now.ToString("yyyyMMdd_HHmmss");
 
-            dialog.Filter =
-                "PNG Image|*.png|JPEG Image|*.jpg|Bitmap Image|*.bmp";
+            NimeSisestusForm nimeVorm = new NimeSisestusForm(vaikimisiNimi);
 
-            if (dialog.ShowDialog() == DialogResult.OK)
+            if (nimeVorm.ShowDialog() != DialogResult.OK)
+                return;
+
+            string sisestatudNimi = nimeVorm.SisestatudNimi;
+
+            if (string.IsNullOrWhiteSpace(sisestatudNimi))
             {
-                string extension =
-                    Path.GetExtension(dialog.FileName).ToLower();
-
-                if (extension == ".jpg")
-                {
-                    pilt.Image.Save(
-                        dialog.FileName,
-                        System.Drawing.Imaging.ImageFormat.Jpeg);
-                }
-                else if (extension == ".bmp")
-                {
-                    pilt.Image.Save(
-                        dialog.FileName,
-                        System.Drawing.Imaging.ImageFormat.Bmp);
-                }
-                else
-                {
-                    pilt.Image.Save(
-                        dialog.FileName,
-                        System.Drawing.Imaging.ImageFormat.Png);
-                }
-
-                savedImages.Add(dialog.FileName);
-
-                MessageBox.Show(
-                    "Pilt on salvestatd!");
+                sisestatudNimi = vaikimisiNimi;
             }
+
+            string kaust = PildikoguAbi.KaustaTee();
+            string failiNimi = PildikoguAbi.PuhastaFailiNimi(sisestatudNimi) + ".png";
+            string teeFaili = PildikoguAbi.LeiaVabaTee(kaust, failiNimi);
+
+            pilt.Image.Save(teeFaili, System.Drawing.Imaging.ImageFormat.Png);
+
+            MessageBox.Show(
+                "Pilt on salvestatud pildikogusse!\n\n" + Path.GetFileName(teeFaili),
+                "Salvestatud",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information);
         }
 
         private void OpenLibrary(object sender, EventArgs e)
         {
-            if (savedImages.Count == 0)
+            string kaust = PildikoguAbi.KaustaTee();
+            string[] failid = Directory.GetFiles(kaust, "*.*");
+
+            if (failid.Length == 0)
             {
                 MessageBox.Show(
-                    "Salvestatud pilte pole veel",
+                    "Pildikogus pole veel ühtegi pilti",
                     "Pildikogu",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Information);
@@ -310,7 +301,7 @@ namespace iseseisevtoo_kolm_rakendused
                 return;
             }
 
-            PictureLibraryForm libraryForm = new PictureLibraryForm(savedImages);
+            PictureLibraryForm libraryForm = new PictureLibraryForm();
 
             if (libraryForm.ShowDialog() == DialogResult.OK &&
                 libraryForm.SelectedImagePath != null)

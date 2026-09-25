@@ -10,6 +10,7 @@ namespace iseseisevtoo_kolm_rakendused
         private Button pictureViewerButton;
         private Button mathQuizButton;
         private Button matchingGameButton;
+        private Button taustavarv;
         private Label silt;
         private PictureBox pilt;
 
@@ -34,6 +35,14 @@ namespace iseseisevtoo_kolm_rakendused
             pilt.Dock = DockStyle.Fill;
             pilt.Image = Image.FromFile(@"..\..\Pildid\images.jpg");
             pilt.SizeMode = PictureBoxSizeMode.StretchImage;
+
+            taustavarv = new Button
+            {
+                Text = "Vali tausta värv",
+                Size = new Size(85, 55),
+                Location = new Point(400, 250),
+                Font = new Font("Arial", 10)
+            };
 
             silt = new Label
             {
@@ -72,6 +81,8 @@ namespace iseseisevtoo_kolm_rakendused
             pictureViewerButton.Click += OpenPictureViewer;
             mathQuizButton.Click += OpenMathQuiz;
             matchingGameButton.Click += OpenMatchingGame;
+            taustavarv.Click += TaustaValikNupp_Click;
+            Controls.Add(taustavarv);
             Controls.Add(pilt);
             Controls.Add(silt);
             Controls.Add(pictureViewerButton);
@@ -86,7 +97,15 @@ namespace iseseisevtoo_kolm_rakendused
             PictureViewerForm form = new PictureViewerForm();
             form.Show();
         }
+        private void TaustaValikNupp_Click(object sender, EventArgs e)
+        {
+            ColorDialog dialog = new ColorDialog();
 
+            if (dialog.ShowDialog() == DialogResult.OK)
+            {
+                RakendusSeaded.TaustaVarv = dialog.Color;
+            }
+        }
         private void OpenMathQuiz(object sender, EventArgs e)
         {
             MathQuizForm form = new MathQuizForm();

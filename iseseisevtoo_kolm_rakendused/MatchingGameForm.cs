@@ -50,7 +50,7 @@ namespace iseseisevtoo_kolm_rakendused
         {
             Text = "Mälumäng";
             StartPosition = FormStartPosition.CenterScreen;
-            BackColor = Color.WhiteSmoke;
+            BackColor = RakendusSeaded.TaustaVarv ?? Color.WhiteSmoke;
         }
 
         private void SeadistaRaskusaste(int tase)
@@ -134,7 +134,7 @@ namespace iseseisevtoo_kolm_rakendused
             paaridLabel = new Label
             {
                 Text = "Paarid: 0/" + paarideArv,
-                Location = new Point(140, 20),
+                Location = new Point(160, 20),
                 AutoSize = true,
                 Font = new Font("Arial", 12, FontStyle.Bold)
             };
@@ -142,14 +142,14 @@ namespace iseseisevtoo_kolm_rakendused
             Label raskusasteSilt = new Label
             {
                 Text = "Raskusaste:",
-                Location = new Point(240, 22),
+                Location = new Point(300, 22),
                 AutoSize = true,
                 Font = new Font("Arial", 10, FontStyle.Regular)
             };
 
             raskusasteBox = new ComboBox
             {
-                Location = new Point(325, 20),
+                Location = new Point(390, 18),
                 Size = new Size(110, 25),
                 DropDownStyle = ComboBoxStyle.DropDownList
             };
@@ -164,8 +164,8 @@ namespace iseseisevtoo_kolm_rakendused
             Button taaskaivitaNupp = new Button
             {
                 Text = "Algusest",
-                Location = new Point(ClientSize.Width - 90, 15),
-                Size = new Size(85, 30),
+                Location = new Point(ClientSize.Width - 120, 15),
+                Size = new Size(90, 30),
                 Anchor = AnchorStyles.Top | AnchorStyles.Right
             };
 

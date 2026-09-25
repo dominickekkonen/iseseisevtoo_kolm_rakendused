@@ -21,6 +21,7 @@ namespace iseseisevtoo_kolm_rakendused
 
         private Label ajaLabel;
         private Button alustaNupp;
+        private Button lopetaNupp;
 
         private Random juhuslik;
         private Timer ajastaja;
@@ -40,7 +41,7 @@ namespace iseseisevtoo_kolm_rakendused
             Text = "Matemaatika viktoriin";
             Size = new Size(500, 400);
             StartPosition = FormStartPosition.CenterScreen;
-            BackColor = Color.WhiteSmoke;
+            BackColor = RakendusSeaded.TaustaVarv ?? Color.WhiteSmoke;
         }
 
         private void LooKomponendid()
@@ -136,13 +137,24 @@ namespace iseseisevtoo_kolm_rakendused
             {
                 Text = "Alusta viktoriini",
                 Font = new Font("Arial", 12),
-                Location = new Point(150, algusY + RiviArv * 45 + 20),
-                Size = new Size(180, 40)
+                Location = new Point(110, algusY + RiviArv * 45 + 20),
+                Size = new Size(140, 40)
+            };
+
+            lopetaNupp = new Button
+            {
+                Text = "Lõpeta",
+                Font = new Font("Arial", 12),
+                Location = new Point(260, algusY + RiviArv * 45 + 20),
+                Size = new Size(140, 40),
+                Enabled = false
             };
 
             alustaNupp.Click += AlustaNupp_Click;
+            lopetaNupp.Click += LopetaNupp_Click;
 
             Controls.Add(alustaNupp);
+            Controls.Add(lopetaNupp);
         }
 
         private void LooAjastaja()
@@ -160,7 +172,10 @@ namespace iseseisevtoo_kolm_rakendused
             ajaLabel.Text = aegaJarel + " sekundit";
 
             LubaVastuseKastid(true);
+            LahtestaVarvid();
+
             alustaNupp.Enabled = false;
+            lopetaNupp.Enabled = true;
 
             ajastaja.Start();
         }
@@ -175,6 +190,12 @@ namespace iseseisevtoo_kolm_rakendused
                 ajastaja.Stop();
                 LopetaViktoriin();
             }
+        }
+
+        private void LopetaNupp_Click(object sender, EventArgs e)
+        {
+            ajastaja.Stop();
+            LopetaViktoriin();
         }
 
         private void LooKusimused()
@@ -228,9 +249,21 @@ namespace iseseisevtoo_kolm_rakendused
             }
         }
 
+        private void LahtestaVarvid()
+        {
+            for (int i = 0; i < RiviArv; i++)
+            {
+                vastuseKastid[i].BackColor = Color.White;
+            }
+        }
+
         private void LopetaViktoriin()
         {
             LubaVastuseKastid(false);
+
+            alustaNupp.Enabled = true;
+            alustaNupp.Text = "Proovi uuesti";
+            lopetaNupp.Enabled = false;
 
             int oigeidVastuseid = 0;
 
@@ -240,15 +273,17 @@ namespace iseseisevtoo_kolm_rakendused
 
                 if (antudVastus == oigedVastused[i])
                 {
+                    vastuseKastid[i].BackColor = Color.LightGreen;
                     oigeidVastuseid++;
+                }
+                else
+                {
+                    vastuseKastid[i].BackColor = Color.LightCoral;
                 }
             }
 
-            alustaNupp.Enabled = true;
-            alustaNupp.Text = "Proovi uuesti";
-
             MessageBox.Show(
-                "Aeg sai otsa!\n\n" +
+                "Viktoriin lõpetatud!\n\n" +
                 "Õigeid vastuseid: " + oigeidVastuseid + "/" + RiviArv,
                 "Tulemus",
                 MessageBoxButtons.OK,

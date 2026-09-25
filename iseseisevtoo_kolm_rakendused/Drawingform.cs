@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.IO;
 using System.Windows.Forms;
 
 namespace iseseisevtoo_kolm_rakendused
@@ -11,6 +12,13 @@ namespace iseseisevtoo_kolm_rakendused
 
         private Point viimanePunkt;
         private bool joonistan;
+
+        private Color valitudVarv = Color.Black;
+
+        private Button varviNupp;
+        private Label paksusLabel;
+        private TrackBar paksusTriib;
+        private Label paksusVaartusLabel;
 
         private Button puhastaNupp;
         private Button salvestaNupp;
@@ -26,9 +34,9 @@ namespace iseseisevtoo_kolm_rakendused
         private void InitializeForm()
         {
             Text = "Joonistamine";
-            Size = new Size(720, 640);
+            Size = new Size(720, 700);
             StartPosition = FormStartPosition.CenterParent;
-            BackColor = Color.LightGray;
+            BackColor = RakendusSeaded.TaustaVarv ?? Color.LightGray;
         }
 
         private void CreateControls()
@@ -36,7 +44,7 @@ namespace iseseisevtoo_kolm_rakendused
             joonistusAla = new PictureBox
             {
                 Location = new Point(20, 20),
-                Size = new Size(660, 470),
+                Size = new Size(660, 460),
                 BorderStyle = BorderStyle.FixedSingle,
                 BackColor = Color.White
             };
@@ -45,32 +53,74 @@ namespace iseseisevtoo_kolm_rakendused
             joonistusAla.MouseMove += JoonistusAla_MouseMove;
             joonistusAla.MouseUp += JoonistusAla_MouseUp;
 
+            varviNupp = new Button
+            {
+                Text = "Värv",
+                Location = new Point(20, 495),
+                Size = new Size(150, 40),
+                BackColor = valitudVarv,
+                ForeColor = Color.White
+            };
+
+            paksusLabel = new Label
+            {
+                Text = "Joone paksus:",
+                Font = new Font("Arial", 10),
+                AutoSize = true,
+                Location = new Point(190, 505)
+            };
+
+            paksusTriib = new TrackBar
+            {
+                Location = new Point(310, 490),
+                Size = new Size(220, 45),
+                Minimum = 1,
+                Maximum = 20,
+                Value = 3,
+                TickFrequency = 1
+            };
+
+            paksusVaartusLabel = new Label
+            {
+                Text = "3",
+                Font = new Font("Arial", 10, FontStyle.Bold),
+                AutoSize = true,
+                Location = new Point(540, 505)
+            };
+
+            paksusTriib.ValueChanged += PaksusTriib_ValueChanged;
+
             puhastaNupp = new Button
             {
                 Text = "Puhasta",
-                Location = new Point(20, 510),
+                Location = new Point(20, 550),
                 Size = new Size(150, 40)
             };
 
             salvestaNupp = new Button
             {
                 Text = "Salvesta joonistus",
-                Location = new Point(190, 510),
+                Location = new Point(190, 550),
                 Size = new Size(180, 40)
             };
 
             sulgeNupp = new Button
             {
                 Text = "Sulge",
-                Location = new Point(500, 510),
+                Location = new Point(500, 550),
                 Size = new Size(150, 40)
             };
 
+            varviNupp.Click += VarviNupp_Click;
             puhastaNupp.Click += PuhastaNupp_Click;
             salvestaNupp.Click += SalvestaNupp_Click;
             sulgeNupp.Click += SulgeNupp_Click;
 
             Controls.Add(joonistusAla);
+            Controls.Add(varviNupp);
+            Controls.Add(paksusLabel);
+            Controls.Add(paksusTriib);
+            Controls.Add(paksusVaartusLabel);
             Controls.Add(puhastaNupp);
             Controls.Add(salvestaNupp);
             Controls.Add(sulgeNupp);
@@ -95,6 +145,22 @@ namespace iseseisevtoo_kolm_rakendused
             joonistusAla.Image = joonistusPilt;
         }
 
+        private void VarviNupp_Click(object sender, EventArgs e)
+        {
+            ColorDialog dialog = new ColorDialog();
+
+            if (dialog.ShowDialog() == DialogResult.OK)
+            {
+                valitudVarv = dialog.Color;
+                varviNupp.BackColor = valitudVarv;
+            }
+        }
+
+        private void PaksusTriib_ValueChanged(object sender, EventArgs e)
+        {
+            paksusVaartusLabel.Text = paksusTriib.Value.ToString();
+        }
+
         private void JoonistusAla_MouseDown(object sender, MouseEventArgs e)
         {
             joonistan = true;
@@ -106,9 +172,11 @@ namespace iseseisevtoo_kolm_rakendused
             if (!joonistan)
                 return;
 
+            int paksus = paksusTriib.Value;
+
             using (Graphics g = Graphics.FromImage(joonistusPilt))
             {
-                using (Pen pliiats = new Pen(Color.Black, 3))
+                using (Pen pliiats = new Pen(valitudVarv, paksus))
                 {
                     g.DrawLine(pliiats, viimanePunkt, e.Location);
                 }
@@ -136,36 +204,31 @@ namespace iseseisevtoo_kolm_rakendused
 
         private void SalvestaNupp_Click(object sender, EventArgs e)
         {
-            SaveFileDialog dialog = new SaveFileDialog();
+            string vaikimisiNimi = "joonistus_" + DateTime.Now.ToString("yyyyMMdd_HHmmss");
 
-            dialog.Filter =
-                "PNG Image|*.png|JPEG Image|*.jpg|Bitmap Image|*.bmp";
+            NimeSisestusForm nimeVorm = new NimeSisestusForm(vaikimisiNimi);
 
-            if (dialog.ShowDialog() == DialogResult.OK)
+            if (nimeVorm.ShowDialog() != DialogResult.OK)
+                return;
+
+            string sisestatudNimi = nimeVorm.SisestatudNimi;
+
+            if (string.IsNullOrWhiteSpace(sisestatudNimi))
             {
-                string extension = System.IO.Path.GetExtension(dialog.FileName).ToLower();
-
-                if (extension == ".jpg")
-                {
-                    joonistusPilt.Save(
-                        dialog.FileName,
-                        System.Drawing.Imaging.ImageFormat.Jpeg);
-                }
-                else if (extension == ".bmp")
-                {
-                    joonistusPilt.Save(
-                        dialog.FileName,
-                        System.Drawing.Imaging.ImageFormat.Bmp);
-                }
-                else
-                {
-                    joonistusPilt.Save(
-                        dialog.FileName,
-                        System.Drawing.Imaging.ImageFormat.Png);
-                }
-
-                MessageBox.Show("Joonistus on salvestatud!");
+                sisestatudNimi = vaikimisiNimi;
             }
+
+            string kaust = PildikoguAbi.KaustaTee();
+            string failiNimi = PildikoguAbi.PuhastaFailiNimi(sisestatudNimi) + ".png";
+            string teeFaili = PildikoguAbi.LeiaVabaTee(kaust, failiNimi);
+
+            joonistusPilt.Save(teeFaili, System.Drawing.Imaging.ImageFormat.Png);
+
+            MessageBox.Show(
+                "Joonistus on salvestatud pildikogusse!\n\n" + Path.GetFileName(teeFaili),
+                "Salvestatud",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information);
         }
 
         private void SulgeNupp_Click(object sender, EventArgs e)
